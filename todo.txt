@@ -7,18 +7,6 @@ TODO, which will get actually done
 
 - TeeWorlds: tap-and-swipe controls.
 
-- OpenArena: add dynamic camera button to joystick, add option for joystick tap action.
-
-- OpenArena: tap to aim for aiming modes with shoot button.
-
-- OpenArena: Option for the second tap to stop shooting in tap to shoot mode.
-
-- OpenArena: Option to disable joystick jump.
-
-- OpenArena: Visual feedback when you start and stop shooting on tap (crosshair size change).
-
-- OpenArena: Zooming is totally broken, camera jumps upwards all the time.
-
 - SDL: CompatibilityHacksForceScreenUpdate=y does not redraw screen after putting to background and restoring.
 
 - SDL: add option for non-fullscreen non-immersive mode.
@@ -31,6 +19,8 @@ TODO, which will get actually done
 
 - SDL: Right mouse button sometimes gets stuck in tap or hold mode, faster scrollwheel while not moving mouse cursor.
 
+- SDL: SD card permission dialog does nothing on Android 10.
+
 - XSDL: use pixel size instead of video mode size, Android multiwindow support.
 
 - XSDL: proper window resizing, with xrandr resizing XSDL screen buffer.
@@ -39,7 +29,9 @@ TODO, which will get actually done
 
 - XSDL: Copy contents of XSDL clipboard to Android clipboard when the app loses focus.
 
-- XSDL: mouse wheel movement from Bluetooth mouse do not work when mouse capture is active.
+- XSDL: Update video when window not focused, this will allow for output in splitscreen mode.
+
+- XSDL: Option to disable PulseAudio.
 
 - Debian: force Chromium version to the last working one, from Jan 2020.
 

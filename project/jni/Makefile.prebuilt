@@ -11,35 +11,6 @@ ICU := $(foreach ARCH, $(ARCHES32) $(ARCHES64), $(foreach NAME, $(ICU_LIBS), icu
 
 OPENSSL := $(foreach ARCH, $(ARCHES32) $(ARCHES64), openssl/lib-$(ARCH)/libcrypto.so.sdl.1.so openssl/lib-$(ARCH)/libssl.so.sdl.1.so)
 
-LIBS := $(ICONV) $(ICU) $(OPENSSL)
-
-.PHONY: all boost openssl icu
-all: $(LIBS)
-
-openssl: $(OPENSSL)
-
-icu: $(ICONV) $(ICU)
-
-#.NOTPARALLEL: $(LIBS) $(BOOST)
-
-$(ICONV) $(ICU): iconv/src/build.sh
-	cd iconv/src  && \
-	./build.sh  && \
-	for ARCH in $(ARCHES32) $(ARCHES64); do  \
-		mkdir -p ../lib/$$ARCH ../include ; \
-		cp -f $$ARCH/libiconv.so $$ARCH/libcharset.so ../lib/$$ARCH/  ; \
-		cp -f $$ARCH/include/*.h ../include/  ; \
-		mkdir -p ../../icuuc/lib/$$ARCH ../../icuuc/include/unicode ../../icuuc/include/layout  ; \
-		cp -f $$ARCH/libicu*.a $$ARCH/libharfbuzz.a ../../icuuc/lib/$$ARCH/  ; \
-		cp -f $$ARCH/include/unicode/*.h ../../icuuc/include/unicode/  ; \
-		cp -f $$ARCH/include/layout/*.h ../../icuuc/include/layout/  ; \
-		cp -f $$ARCH/include/icu-le-hb/layout/*.h ../../icuuc/include/layout/  ; \
-	done && \
-	git clean -f -d -x
-
-$(OPENSSL): openssl/compile.sh
-	cd openssl && ./compile.sh
-
 BOOST_LIBS := \
 	atomic \
 	chrono \
@@ -78,8 +49,35 @@ BOOST_LIBS := \
 	wave \
 	wserialization \
 
-
 BOOST := $(foreach ARCH, $(ARCHES32) $(ARCHES64), $(foreach NAME, $(BOOST_LIBS), boost/lib/$(ARCH)/libboost_$(NAME).a))
+
+.PHONY: all boost icu openssl
+
+all: $(ICONV) $(ICU) $(OPENSSL) $(BOOST)
+
+boost: $(BOOST)
+
+icu: $(ICONV) $(ICU)
+
+openssl: $(OPENSSL)
+
+$(ICONV) $(ICU): iconv/src/build.sh
+	cd iconv/src  && \
+	./build.sh  && \
+	for ARCH in $(ARCHES32) $(ARCHES64); do  \
+		mkdir -p ../lib/$$ARCH ../include ; \
+		cp -f $$ARCH/libiconv.so $$ARCH/libcharset.so ../lib/$$ARCH/  ; \
+		cp -f $$ARCH/include/*.h ../include/  ; \
+		mkdir -p ../../icuuc/lib/$$ARCH ../../icuuc/include/unicode ../../icuuc/include/layout  ; \
+		cp -f $$ARCH/libicu*.a $$ARCH/libharfbuzz.a ../../icuuc/lib/$$ARCH/  ; \
+		cp -f $$ARCH/include/unicode/*.h ../../icuuc/include/unicode/  ; \
+		cp -f $$ARCH/include/layout/*.h ../../icuuc/include/layout/  ; \
+		cp -f $$ARCH/include/icu-le-hb/layout/*.h ../../icuuc/include/layout/  ; \
+	done && \
+	git clean -f -d -x
+
+$(OPENSSL): openssl/compile.sh
+	cd openssl && ./compile.sh
 
 $(BOOST): boost/src/build-android.sh
 	rm -rf boost/include boost/lib ; \
@@ -93,8 +91,26 @@ $(BOOST): boost/src/build-android.sh
 	git clean -f -d -x ; \
 	$(foreach NAME, $(BOOST_LIBS), ln -sf boost ../../boost_$(NAME) ;)
 
-boost: $(BOOST)
-
 iconv/src/build.sh boost/src/build-android.sh:
 	git submodule update --init --recursive
 
+# Dependencies for CustomBuildScript.mk
+
+define COPY_TO_OBJ =
+
+ARCH := $(1)
+SRCDIR := $(2)
+FILENAME := $(3)
+
+../obj/local/$$(ARCH)/$$(FILENAME) $$(abspath ../obj/local/$$(ARCH)/$$(FILENAME)): $$(SRCDIR)/$$(FILENAME)
+	cp -f $$< $$@
+
+#$$(warning === ARCH = $(1) SRCDIR = $(2) FILENAME = $(3) ../obj/local/$$(ARCH)/$$(FILENAME) $$(abspath ../obj/local/$$(ARCH)/$$(FILENAME)): $$(SRCDIR)/$$(FILENAME))
+
+endef # COPY_TO_OBJ
+
+$(foreach ARCH, $(ARCHES32) $(ARCHES64), $(foreach NAME, libiconv.so libcharset.so, $(eval $(call COPY_TO_OBJ,$(ARCH),iconv/lib/$(ARCH),$(NAME)))))
+
+$(foreach ARCH, $(ARCHES32) $(ARCHES64), $(foreach NAME, $(ICU_LIBS), $(eval $(call COPY_TO_OBJ,$(ARCH),icuuc/lib/$(ARCH),lib$(NAME).a))))
+
+$(foreach ARCH, $(ARCHES32) $(ARCHES64), $(foreach NAME, libcrypto.so.sdl.1.so libssl.so.sdl.1.so, $(eval $(call COPY_TO_OBJ,$(ARCH),openssl/lib-$(ARCH),$(NAME)))))

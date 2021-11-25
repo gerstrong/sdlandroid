@@ -20,6 +20,7 @@
 				  android:launchMode="singleTask"
 				  android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"
 				  android:windowSoftInputMode="stateUnspecified"
+				  android:theme="@style/AppTheme"
 		>
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
@@ -43,7 +44,7 @@
 			<!-- ==OPENFILE== --> </intent-filter>
 		</activity>
 		<!-- ==ADMOB== --> <activity android:name="com.google.android.gms.ads.AdActivity" android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|screenSize|smallestScreenSize|layoutDirection"/>
-		<!-- ==ADMOB== --> <meta-data android:name="com.google.android.gms.version" android:value="4323000" /> <!-- Change this value to the actual Google Play SDK version -->
+		<!-- ==ADMOB== --> <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
 		<!-- ==GOOGLEPLAYGAMESERVICES== --> <meta-data android:name="com.google.android.gms.games.APP_ID" android:value="@string/google_play_game_services_app_id" />
 		<!-- ==GOOGLEPLAYGAMESERVICES== --> <meta-data android:name="com.google.android.gms.appstate.APP_ID" android:value="@string/google_play_game_services_app_id" />
 		<!-- ==GOOGLEPLAYGAMESERVICES== --> <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>
@@ -68,7 +69,7 @@
 	<!-- ==NOT_EXTERNAL_STORAGE== --> <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="18" />
 	<!-- ==NOT_EXTERNAL_STORAGE== --> <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="18" /> <!-- App has write access to it's own dir on SD card without this permission on Android 4.4 and above -->
 	<!-- ==READ_OBB== --> <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="18" />
-	<!-- ==READ_OBB== --> <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="23" /> <!-- OBB file requires explicit permission before Marshmallow -->
+	<!-- ==READ_OBB== --> <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- OBB file requires explicit permission before Marshmallow -->
 	<!-- ==RECORD_AUDIO== --> <uses-permission android:name="android.permission.RECORD_AUDIO" />
 	<!-- ==ADMOB== --> <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 	<!-- ==FOREGROUND_SERVICE== --> <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />

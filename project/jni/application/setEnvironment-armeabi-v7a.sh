@@ -8,7 +8,7 @@ NDK=`dirname $NDK`
 
 if uname -s | grep -i "linux" > /dev/null ; then
 	MYARCH=linux-$(arch)
-  NDK=`readlink -f $NDK`
+	NDK=`readlink -f $NDK`
 elif uname -s | grep -i "darwin" > /dev/null ; then
 	MYARCH=darwin-x86_64
 elif uname -s | grep -i "windows" > /dev/null ; then
@@ -28,7 +28,7 @@ GCCPREFIX=armv7a-linux-androideabi
 BINUTILSPREFIX=arm-linux-androideabi
 APILEVEL=16
 
-APP_MODULES=`grep 'APP_MODULES [:][=]' $LOCAL_PATH/../Settings.mk | sed 's@.*[=]\(.*\)@\1@'`
+APP_MODULES=`grep 'APP_MODULES [:][=]' $LOCAL_PATH/../Settings.mk | sed 's@.*[=]\(.*\)@\1@' | sed 's@\b\(application\|sdl_main\|sdl_native_helpers\|c++_shared\)\b@@g'`
 
 APP_AVAILABLE_STATIC_LIBS="`echo '
 include $(LOCAL_PATH)/../Settings.mk
@@ -38,7 +38,7 @@ all:
 
 APP_SHARED_LIBS=$(
 echo $APP_MODULES | xargs -n 1 echo | while read LIB ; do
-	STATIC=`echo $APP_AVAILABLE_STATIC_LIBS application sdl_main c++_shared | grep "\\\\b$LIB\\\\b"`
+	STATIC=`echo $APP_AVAILABLE_STATIC_LIBS | grep "\\\\b$LIB\\\\b"`
 	if [ -n "$STATIC" ] ; then true
 	else
 		case $LIB in
@@ -106,6 +106,7 @@ LDFLAGS="
 -Qunused-arguments
 -Wl,-z,relro
 -Wl,-z,now
+-Wl,--no-rosegment
 $SHARED
 $APP_SHARED_LIBS
 -landroid
@@ -127,11 +128,11 @@ CXXFLAGS="$CXXFLAGS $CFLAGS -frtti -fexceptions" \
 LDFLAGS="$LDFLAGS" \
 CC="$CC" \
 CXX="$CXX" \
-RANLIB="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/$BINUTILSPREFIX-ranlib" \
+RANLIB="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/llvm-ranlib" \
 LD="$CXX" \
-AR="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/$BINUTILSPREFIX-ar" \
+AR="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/llvm-ar" \
 CPP="$CPP" \
-NM="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/$BINUTILSPREFIX-nm" \
-AS="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/$BINUTILSPREFIX-as" \
-STRIP="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/$BINUTILSPREFIX-strip" \
+NM="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/llvm-nm" \
+AS="$CC" \
+STRIP="$NDK/toolchains/llvm/prebuilt/$MYARCH/bin/llvm-strip" \
 "$@"

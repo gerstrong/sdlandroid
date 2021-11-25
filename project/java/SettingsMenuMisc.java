@@ -324,6 +324,7 @@ class SettingsMenuMisc extends SettingsMenu
 				p.getResources().getString(R.string.mouse_keepaspectratio),
 				p.getResources().getString(R.string.video_smooth),
 				p.getResources().getString(R.string.video_immersive),
+				p.getResources().getString(R.string.video_draw_cutout),
 				p.getResources().getString(R.string.video_orientation_autodetect),
 				p.getResources().getString(R.string.video_orientation_vertical),
 				p.getResources().getString(R.string.video_bpp_24),
@@ -333,6 +334,7 @@ class SettingsMenuMisc extends SettingsMenu
 				Globals.KeepAspectRatio,
 				Globals.VideoLinearFilter,
 				Globals.ImmersiveMode,
+				Globals.DrawInDisplayCutout,
 				Globals.AutoDetectOrientation,
 				!Globals.HorizontalOrientation,
 				Globals.VideoDepthBpp == 24,
@@ -345,6 +347,7 @@ class SettingsMenuMisc extends SettingsMenu
 					p.getResources().getString(R.string.mouse_keepaspectratio),
 					p.getResources().getString(R.string.video_smooth),
 					p.getResources().getString(R.string.video_immersive),
+					p.getResources().getString(R.string.video_draw_cutout),
 					p.getResources().getString(R.string.video_orientation_autodetect),
 					p.getResources().getString(R.string.video_orientation_vertical),
 					p.getResources().getString(R.string.video_bpp_24),
@@ -355,6 +358,7 @@ class SettingsMenuMisc extends SettingsMenu
 					Globals.KeepAspectRatio,
 					Globals.VideoLinearFilter,
 					Globals.ImmersiveMode,
+					Globals.DrawInDisplayCutout,
 					Globals.AutoDetectOrientation,
 					!Globals.HorizontalOrientation,
 					Globals.VideoDepthBpp == 24,
@@ -390,14 +394,16 @@ class SettingsMenuMisc extends SettingsMenu
 					if( item == 2 )
 						Globals.ImmersiveMode = isChecked;
 					if( item == 3 )
-						Globals.AutoDetectOrientation = isChecked;
+						Globals.DrawInDisplayCutout = isChecked;
 					if( item == 4 )
-						Globals.HorizontalOrientation = !isChecked;
+						Globals.AutoDetectOrientation = isChecked;
 					if( item == 5 )
-						Globals.VideoDepthBpp = (isChecked ? 24 : 16);
+						Globals.HorizontalOrientation = !isChecked;
 					if( item == 6 )
-						Globals.TvBorders = isChecked;
+						Globals.VideoDepthBpp = (isChecked ? 24 : 16);
 					if( item == 7 )
+						Globals.TvBorders = isChecked;
+					if( item == 8 )
 						Globals.MultiThreadedVideo = isChecked;
 				}
 			});

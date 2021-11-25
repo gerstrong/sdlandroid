@@ -66,6 +66,7 @@ import android.net.Uri;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.hardware.input.InputManager;
+import android.graphics.Rect;
 
 
 class Mouse
@@ -1102,9 +1103,6 @@ class DemoGLSurfaceView extends GLSurfaceView_SDL {
 		if( nativeKey( keyCode, 0, event.getUnicodeChar(), DifferentTouchInput.processGamepadDeviceId(event.getDevice()) ) == 0 )
 			return super.onKeyUp(keyCode, event);
 
-		//if( keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_MENU )
-		//	DimSystemStatusBar.get().dim(mParent._videoLayout);
-
 		return true;
 	}
 
@@ -1163,14 +1161,19 @@ class DemoGLSurfaceView extends GLSurfaceView_SDL {
 		if (DifferentTouchInput.capturedMouseY >= this.getHeight())
 			DifferentTouchInput.capturedMouseY = this.getHeight() - 1;
 
-		//Log.v("SDL", "DemoGLSurfaceView::onCapturedPointerEvent(): X " + DifferentTouchInput.capturedMouseX + " Y " + DifferentTouchInput.capturedMouseY +
+		//Log.v("SDL", "SDL DemoGLSurfaceView::onCapturedPointerEvent(): X " + DifferentTouchInput.capturedMouseX + " Y " + DifferentTouchInput.capturedMouseY +
 		//				" W " + this.getWidth() + " H " + this.getHeight() + " getX " + event.getX() + " getY " + event.getY() +
 		//				" RelX " + event.getAxisValue(MotionEvent.AXIS_RELATIVE_X) + " RelY " + event.getAxisValue(MotionEvent.AXIS_RELATIVE_Y) );
 
 		event.setLocation(DifferentTouchInput.capturedMouseX, DifferentTouchInput.capturedMouseY);
 		event.setAction(MotionEvent.ACTION_HOVER_MOVE);
 
-		//Log.v("SDL", "DemoGLSurfaceView::onCapturedPointerEvent(): XY " + event.getX() + " " + event.getY() + " action " + event.getAction());
+		int scrollX = Math.round(event.getAxisValue(MotionEvent.AXIS_HSCROLL));
+		int scrollY = Math.round(event.getAxisValue(MotionEvent.AXIS_VSCROLL));
+		if (scrollX != 0 || scrollY != 0)
+			DemoGLSurfaceView.nativeMouseWheel(scrollX, scrollY);
+
+		//Log.v("SDL", "DemoGLSurfaceView::onCapturedPointerEvent(): XY " + event.getX() + " " + event.getY() + " action " + event.getAction() + " scroll " + scrollX + " " + scrollY);
 
 		return this.onTouchEvent(event);
 	}

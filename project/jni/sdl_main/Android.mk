@@ -18,4 +18,8 @@ LOCAL_SRC_FILES := sdl_main.c SDL_android_main.cpp
 LOCAL_SHARED_LIBRARIES := sdl-$(SDL_VERSION) application
 LOCAL_LDLIBS := -llog
 
+ifeq ($(CUSTOM_BUILD_SCRIPT_FIRST_PASS),)
+
 include $(BUILD_SHARED_LIBRARY)
+
+endif

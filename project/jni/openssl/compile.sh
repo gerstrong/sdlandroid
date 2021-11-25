@@ -1,6 +1,6 @@
 #!/bin/sh
 
-ARCH_LIST="armeabi-v7a x86_64 x86 arm64-v8a"
+ARCH_LIST="arm64-v8a armeabi-v7a x86_64 x86"
 
 PARALLEL=false
 
@@ -17,18 +17,17 @@ build() {
 	case $ARCH in
 		armeabi-v7a)
 			#NO_ASM="-DOPENSSL_NO_ASM=1" # Assembler in OpenSSL is broken when using clang
-			export CONFIGURE_ARCH=android-armeabi
+			export CONFIGURE_ARCH=android-arm
 			;;
 		x86)
 			export CONFIGURE_ARCH=android-x86
 			;;
 		arm64-v8a)
-			export CONFIGURE_ARCH=android64-aarch64
+			export CONFIGURE_ARCH=android-arm64
 			;;
 		x86_64)
-			NO_ASM="-DOPENSSL_NO_ASM=1" # Assembler in OpenSSL is broken when using clang
-			#export CONFIGURE_ARCH=android64-x86_64
-			export CONFIGURE_ARCH=android64 # No-asm variant
+			#NO_ASM="-DOPENSSL_NO_ASM=1" # Assembler in OpenSSL is broken when using clang
+			export CONFIGURE_ARCH=android64-x86_64 # No-asm variant
 			;;
 		*)
 			echo "Arch $ARCH not defined"
@@ -39,7 +38,8 @@ build() {
 	mkdir -p build/$ARCH
 	cd build/$ARCH
 
-	tar -x -v -z -f ../../openssl-1.1.1h.tar.gz --strip=1
+	tar -x -v -z -f ../../openssl-1.1.1j.tar.gz --strip=1
+	patch -p1 < ../../config.patch || exit 1
 
 	NDK=`which ndk-build`
 	NDK=`dirname $NDK`
@@ -50,6 +50,11 @@ build() {
 	env LDFLAGS="" \
 		CFLAGS="$NO_ASM" \
 		../../setCrossEnvironment-$ARCH.sh \
+#		ln -s $AR `basename -s -clang $CC`-ar
+#		export PATH=`pwd`:`dirname $CC`:$PATH
+#		export ANDROID_NDK_HOME=`dirname $CC`/..
+#		export CC=clang
+#		export AR=ar
 		sh -c 'env PATH=`dirname $CC`:$PATH \
 		./Configure no-shared --prefix=`pwd`/dist --openssldir=. $CONFIGURE_ARCH -fPIC' \
 		|| exit 1
@@ -68,8 +73,10 @@ build() {
 	env LDFLAGS="" \
 		CFLAGS="$NO_ASM" \
 		../../setCrossEnvironment-$ARCH.sh \
-		sh -c 'env PATH=`dirname $CC`:$PATH \
-		make -j8'
+		sh -c '
+		export PATH=`pwd`:`dirname $CC`:$PATH
+		make -j8' \
+		|| exit 1
 
 	cd ../..
 
@@ -99,10 +106,7 @@ else
 fi
 
 rm -rf include
-mkdir -p include
-cp -r -L build/arm64-v8a/include/openssl include/openssl || exit 1
-patch -p0 < opensslconf.h.patch || exit 1
-sed -i.tmp 's@".*/dist/.*"@"."@g' include/openssl/opensslconf.h
-rm -f include/openssl/opensslconf.h.tmp
+cp -r -L build/arm64-v8a/include ./ || exit 1
+patch -p1 < opensslconf.h.patch || exit 1
 
 rm -rf build

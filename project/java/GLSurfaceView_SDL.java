@@ -40,6 +40,7 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.app.KeyguardManager;
+import android.graphics.Rect;
 
 /**
  * An implementation of SurfaceView that uses the dedicated surface for

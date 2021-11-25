@@ -8,11 +8,15 @@ APP_AVAILABLE_STATIC_LIBS := jpeg png freetype fontconfig xerces ogg vorbis flac
 	glu icudata icutest icui18n icuio icule iculx icutu icuuc icu-le-hb harfbuzz sdl_savepng android_support \
 	gl4es nanogl gd guichan
 
-# Available libraries: mad (GPL-ed!) sdl_mixer sdl_image sdl_ttf sdl_net sdl_blitpool sdl_gfx sdl_sound intl xml2 lua jpeg png ogg flac tremor vorbis freetype xerces curl theora fluidsynth lzma lzo2 mikmod openal timidity zzip bzip2 yaml-cpp python boost_date_time boost_filesystem boost_iostreams boost_program_options boost_regex boost_signals boost_system boost_thread glu avcodec avdevice avfilter avformat avresample avutil swscale swresample bzip2 
-APP_MODULES := application sdl-1.2 sdl_main sdl_native_helpers jpeg png ogg flac vorbis freetype tremor ogg
+# Available libraries: mad (GPL-ed!) sdl_mixer sdl_image sdl_ttf sdl_net sdl_blitpool sdl_gfx sdl_sound intl xml2 lua jpeg png ogg flac tremor vorbis freetype xerces curl theora fluidsynth lzma lzo2 mikmod openal timidity zzip bzip2 yaml-cpp python boost_date_time boost_filesystem boost_iostreams boost_program_options boost_regex boost_signals boost_system boost_thread glu avcodec avdevice avfilter avformat avresample avutil swscale swresample bzip2
+APP_MODULES := application sdl-1.2 sdl_native_helpers jpeg png ogg flac vorbis freetype tremor ogg
+
+ifeq ($(CUSTOM_BUILD_SCRIPT_FIRST_PASS),)
+APP_MODULES += application sdl_main
+endif
 
 ifeq ($(APP_ABI),)
-APP_ABI := armeabi-v7a
+APP_ABI := arm64-v8a armeabi-v7a x86 x86_64
 endif
 
 # The namespace in Java file, with dots replaced with underscores
@@ -20,12 +24,12 @@ SDL_JAVA_PACKAGE_PATH := net_sourceforge_clonekeenplus
 
 # Path to files with application data - they should be downloaded from Internet on first app run inside
 # Java sources, or unpacked from resources (TODO)
-# Typically /sdcard/alienblaster 
+# Typically /sdcard/alienblaster
 # Or /data/data/de.schwardtnet.alienblaster/files if you're planning to unpack data in application private folder
 # Your application will just set current directory there
 SDL_CURDIR_PATH := net.sourceforge.clonekeenplus
 
-# Android Dev Phone G1 has trackball instead of cursor keys, and 
+# Android Dev Phone G1 has trackball instead of cursor keys, and
 # sends trackball movement events as rapid KeyDown/KeyUp events,
 # this will make Up/Down/Left/Right key up events with X frames delay,
 # so if application expects you to press and hold button it will process the event correctly.
@@ -50,9 +54,9 @@ APPLICATION_OVERLAPS_SYSTEM_HEADERS := n
 
 APPLICATION_SUBDIRS_BUILD := src/*
 
-APPLICATION_BUILD_EXCLUDE := 
+APPLICATION_BUILD_EXCLUDE :=
 
-APPLICATION_CUSTOM_BUILD_SCRIPT := 
+APPLICATION_CUSTOM_BUILD_SCRIPT :=
 
 USE_GL4ES :=
 

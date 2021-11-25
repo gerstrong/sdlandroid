@@ -29,12 +29,17 @@ How to compile demo application
 
 Launch commands
 
+	./build.sh ballfield
+
+Or in separate steps
+
 	rm project/jni/application/src
 	ln -s ballfield project/jni/application/src
 	./changeAppSettings.sh -a
-	
+	./build.sh
+
 Then edit file build.sh if needed to add NDK dir to your PATH, then launch it.
-It will compile a bunch of libs under project/libs/armeabi,
+It will compile a bunch of libs under project/libs/,
 create Android package file project/bin/MainActivity-debug.apk,
 and install it to your device or emulator, if you specify option -i or -r to build.sh.
 Then you can test it by launching Ballfield icon from Android applications menu.
@@ -63,32 +68,24 @@ and generally it will take a lot of effort to port OpenGL application to GL ES.
 Licensing issues when using gradle
 ==================================
 
-cd into android-sdk-linux/tools/bin
+cd into android-sdk-linux/tools/bin and
 
-
-and
-
-./sdkmanager --licenses
+	./sdkmanager --licenses
 
 if that does not work you need to update
 
-./sdkmanager --update
+	./sdkmanager --update
 
 Accept the license with 'y'. It might download additional stuff, yet not sure, why...
 
 Retry with
 
-./sdkmanager --licenses
+	./sdkmanager --licenses
 
 If the system tells you that the licenses were accepted, but the build system tells otherwise, it might be looking at the wrong path. Symlinking the licenses directory might solve your problem:
 
-ln -s $ANDROID_HOME/licenses project
+	ln -s $ANDROID_HOME/licenses project
 
-
-How to compile a specific SDL based application
-===============================================
-. build/envsetup.sh
-build
 
 How to compile your own application
 ===================================
@@ -137,10 +134,48 @@ env CXXFLAGS='-frtti -fexceptions' ../setEnvironment.sh ./configure
 Application data may be bundled with app itself, or downloaded from the internet on the first run -
 if you want to put app data inside .apk file - create a .zip archive and put it into the directory
 project/jni/application/src/AndroidData (create it if it doesn't exist), then run ChangeAppSettings.sh
-and specify the file name there. If the data files are more than 10 Mb it's a good idea to put them
-on public HTTP server - you may specify URL in ChangeAppSettings.sh, also you may specify several files.
+and specify the file name there. If the data files are more than 150 Mb then it's a good idea to put them
+on public HTTP server - you may specify URL in AppDataDownloadUrl in AndroidAppSettings.cfg, also you may specify several files.
 If you'll release new version of data files you should change download URL or data file name and update your app as well -
 the app will re-download the data if URL does not match the saved URL from previous download.
+
+AppDataDownloadUrl can have several URLs in the form "Description|URL|MirrorURL^Description2|URL2|MirrorURL2^..."
+If you'll start Description with '!' symbol it will be enabled by default, '!!' will also hide the entry from the menu, so it cannot be disabled.
+If the URL in in the form ':dir/file.dat:http://URL/' it will be downloaded as binary BLOB to the application dir and not unzipped.
+If the URL does not contain 'http://' or 'https://', it is treated as file from 'project/jni/application/src/AndroidData' dir -
+these files are put inside .apk package by the build system.
+
+You can also create .obb file using jobb tool, and attach it to your app on Play Store:
+
+jobb -pn xyz.yourserver.yourapp -pv 123 -d ./data -o main.123.xyz.yourserver.yourapp.obb
+
+This .obb file contains fat32 filesystem, and it will be mounted during app start if you specify:
+
+AppDataDownloadUrl="!!Game data|mnt:main.123"
+
+where "main" is your .obb type (main or patch), "123" is the .obb version code,
+taken from AppVersionCode of the app to which the .obb file is initially attached,
+and xyz.yourserver.yourapp is your app package name taken from AppFullName.
+Note that you can update the app without updating the .obb file, so this version number will stay hardcoded.
+SDL will set an environment variable "ANDROID_OBB_MOUNT_DIR" when .obb file is mounted,
+so your game code can read it's data files from the path returned by getenv("ANDROID_OBB_MOUNT_DIR").
+It will return NULL if the user deletes .obb file, or your app is installed not from Play Store,
+so you may wish to specify a backup download location:
+
+AppDataDownloadUrl="!!Game data|mnt:main.123|https://yourserver.xyz/gamedata.zip"
+
+You also need to specify ReadObbFile=y inside AndroidAppSettings.cfg.
+
+Android app bundles do not support .obb files, they use asset packs instead.
+This app project includes one pre-configured install-time asset pack.
+To put your data into asset pack, copy it to the directory AndroidData/assetpack
+and run changeAppSettings.sh. The asset pack zip archive will be returned by
+getenv("ANDROID_ASSET_PACK_PATH"), this call will return NULL if the asset pack is not installed.
+You can put "assetpack" keyword to AppDataDownloadUrl, the code will check
+if the asset pack is installed and will not download the data from other URLs.
+You can extract files from the asset pack the same way you extract files from the app assets.
+
+AppDataDownloadUrl="!!Game data|assetpack|https://yourserver.xyz/gamedata.zip"
 
 All devices have different screen resolutions, you may toggle automatic screen resizing
 in ChangeAppSettings.sh and draw to virtual 640x480 screen - it will be HW accelerated
@@ -302,14 +337,18 @@ There is helper script project/jni/application/setEnvironment.sh which will set 
 for configure script and makefile, see AndroidBuild.sh in project/jni/application/scummvm dir for reference.
 
 
-How to compile your own application using GCC 4.7 or newer
+Signing your application
 ==========================================================
 
-By default, your application will be build with GCC 4.6. To use a newer version of GCC, e.g. GCC 4.8, set-up
-your project like described but execute following commands before running any of the commandergenius scripts
-to configure or build your project:
-export GCCVER=4.8
-export NDK_TOOLCHAIN_VERSION=${GCCVER}
+You can use scripts sign.sh and signBundle.sh to sign your app.
+Set environment variables ANDROID_KEYSTORE_FILE and ANDROID_KEYSTORE_ALIAS
+to your app signing certificate path and certificate alias,
+and if you don't want the script asking you for a password, set variable
+ANDROID_KEYSTORE_PASS_FILE to a file containing your certificate password.
+
+If you are using app bundles, set envirnment variables
+ANDROID_UPLOAD_KEYSTORE_FILE, ANDROID_UPLOAD_KEYSTORE_ALIAS, and ANDROID_UPLOAD_KEYSTORE_PASS_FILE
+to your app bundle signing certificate in a similar way.
 
 
 Android application sleep/resume support

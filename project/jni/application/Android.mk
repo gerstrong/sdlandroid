@@ -3,7 +3,20 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE := application
+
 APPDIR := $(shell readlink $(LOCAL_PATH)/src)
+
+LOCAL_SHARED_LIBRARIES := sdl-$(SDL_VERSION) $(filter-out $(APP_AVAILABLE_STATIC_LIBS), $(COMPILED_LIBRARIES))
+
+LOCAL_STATIC_LIBRARIES := $(filter $(APP_AVAILABLE_STATIC_LIBS), $(COMPILED_LIBRARIES))
+
+LOCAL_LDLIBS := $(APPLICATION_GLES_LIBRARY) -ldl -llog -lz
+
+LOCAL_LDFLAGS := -Lobj/local/$(TARGET_ARCH_ABI)
+
+LOCAL_LDFLAGS += $(APPLICATION_ADDITIONAL_LDFLAGS)
+
+ifeq ($(APPLICATION_CUSTOM_BUILD_SCRIPT),)
 
 APP_SUBDIRS := $(patsubst $(LOCAL_PATH)/%, %, $(shell find $(LOCAL_PATH)/$(APPDIR) -path '*/.svn' -prune -o -type d -print))
 ifneq ($(APPLICATION_SUBDIRS_BUILD),)
@@ -74,45 +87,11 @@ obj/local/$(TARGET_ARCH_ABI)/libexpat.so: obj/local/$(TARGET_ARCH_ABI)/libexpat-
 
 include $(BUILD_SHARED_LIBRARY)
 
-ifneq ($(APPLICATION_CUSTOM_BUILD_SCRIPT),)
+else ifeq ($(CUSTOM_BUILD_SCRIPT_FIRST_PASS),) # APPLICATION_CUSTOM_BUILD_SCRIPT and not CUSTOM_BUILD_SCRIPT_FIRST_PASS
 
-# TODO: here we're digging inside NDK internal build system, that's not portable
-# NDK r5b provided the $(PREBUILT_SHARED_LIBRARY) target, however it requires .so file to be already present on disk
-# Also I cannot just launch AndroidBuild.sh from makefile because other libraries are not rebuilt and linking will fail
-.PHONY: OVERRIDE_CUSTOM_LIB
-OVERRIDE_CUSTOM_LIB:
-# Prevent ./AndroidBuild.sh to be invoked in parallel for different architectures, it may do things like downloading files which work poorly when launched in parallel
-# .NOTPARALLEL prevents other sources from building in parallel, so we're using flock shell command here
-# There is flock command on Linux, but it fails to lock a file, and mkdir is more portable
-PARALLEL_LOCK := until mkdir .lock >/dev/null 2>&1; do sleep 1; done
-PARALLEL_UNLOCK := rmdir .lock >/dev/null 2>&1
+LOCAL_SRC_FILES := $(APPDIR)/libapplication-$(TARGET_ARCH_ABI).so
+LOCAL_MODULE_FILENAME := libapplication
 
-LOCAL_PATH_SDL_APPLICATION := $(LOCAL_PATH)
+include $(PREBUILT_SHARED_LIBRARY)
 
-$(shell cd $(LOCAL_PATH_SDL_APPLICATION)/src && $(PARALLEL_UNLOCK))
-
-obj/local/armeabi-v7a/libapplication.so: $(LOCAL_PATH)/src/libapplication-armeabi-v7a.so
-
-$(LOCAL_PATH)/src/libapplication-armeabi-v7a.so: $(SDL_APP_LIB_DEPENDS-armeabi-v7a) OVERRIDE_CUSTOM_LIB
-	cd $(LOCAL_PATH_SDL_APPLICATION)/src && $(PARALLEL_LOCK) && \
-	./AndroidBuild.sh armeabi-v7a arm-linux-androideabi && $(PARALLEL_UNLOCK)
-
-obj/local/x86/libapplication.so: $(LOCAL_PATH)/src/libapplication-x86.so
-
-$(LOCAL_PATH)/src/libapplication-x86.so: $(SDL_APP_LIB_DEPENDS-x86) OVERRIDE_CUSTOM_LIB
-	cd $(LOCAL_PATH_SDL_APPLICATION)/src && $(PARALLEL_LOCK) && \
-	./AndroidBuild.sh x86 i686-linux-android && $(PARALLEL_UNLOCK)
-
-obj/local/arm64-v8a/libapplication.so: $(LOCAL_PATH)/src/libapplication-arm64-v8a.so
-
-$(LOCAL_PATH)/src/libapplication-arm64-v8a.so: $(SDL_APP_LIB_DEPENDS-arm64-v8a) OVERRIDE_CUSTOM_LIB
-	cd $(LOCAL_PATH_SDL_APPLICATION)/src && $(PARALLEL_LOCK) && \
-	./AndroidBuild.sh arm64-v8a aarch64-linux-android && $(PARALLEL_UNLOCK)
-
-obj/local/x86_64/libapplication.so: $(LOCAL_PATH)/src/libapplication-x86_64.so
-
-$(LOCAL_PATH)/src/libapplication-x86_64.so: $(SDL_APP_LIB_DEPENDS-x86_64) OVERRIDE_CUSTOM_LIB
-	cd $(LOCAL_PATH_SDL_APPLICATION)/src && $(PARALLEL_LOCK) && \
-	./AndroidBuild.sh x86_64 x86_64-linux-android && $(PARALLEL_UNLOCK)
-
-endif # $(APPLICATION_CUSTOM_BUILD_SCRIPT)
+endif

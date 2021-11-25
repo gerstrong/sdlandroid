@@ -49,7 +49,7 @@ fi
 var=""
 
 if [ "$LibSdlVersion" = "2.0" ]; then
-    JAVA_SRC_PATH=project/javaSDL2 
+    JAVA_SRC_PATH=project/javaSDL2
 fi
 
 if [ "$CompatibilityHacks" = y ]; then
@@ -95,43 +95,64 @@ fi
 
 
 if [ -z "$AppVersionCode" -o "-$AUTO" != "-a" ]; then
-echo
-echo -n "Application version code (integer) ($AppVersionCode): "
-read var
-if [ -n "$var" ] ; then
-	AppVersionCode="$var"
-	CHANGED=1
-fi
+	echo
+	echo -n "Application version code (integer) ($AppVersionCode): "
+	read var
+	if [ -n "$var" ] ; then
+		AppVersionCode="$var"
+		CHANGED=1
+	fi
 fi
 
 if [ -z "$AppVersionName" -o "-$AUTO" != "-a" ]; then
-echo
-echo -n "Application user-visible version name (string) ($AppVersionName): "
-read var
-if [ -n "$var" ] ; then
-	AppVersionName="$var"
-	CHANGED=1
-fi
+	echo
+	echo -n "Application user-visible version name (string) ($AppVersionName): "
+	read var
+	if [ -n "$var" ] ; then
+		AppVersionName="$var"
+		CHANGED=1
+	fi
 fi
 
 if [ -z "$ResetSdlConfigForThisVersion" -o "-$AUTO" != "-a" ]; then
-echo
-echo -n "Reset SDL config when updating application to the new version (y) / (n) ($ResetSdlConfigForThisVersion): "
-read var
-if [ -n "$var" ] ; then
-	ResetSdlConfigForThisVersion="$var"
-	CHANGED=1
-fi
+	echo
+	echo -n "Reset SDL config when updating application to the new version (y) / (n) ($ResetSdlConfigForThisVersion): "
+	read var
+	if [ -n "$var" ] ; then
+		ResetSdlConfigForThisVersion="$var"
+		CHANGED=1
+	fi
 fi
 
 if [ "-$AUTO" != "-a" ]; then
-echo
-echo -n "Delete application data files when upgrading (specify file/dir paths separated by spaces): ($DeleteFilesOnUpgrade): "
-read var
-if [ -n "$var" ] ; then
-	DeleteFilesOnUpgrade="$var"
-	CHANGED=1
+	echo
+	echo -n "Delete application data files when upgrading (specify file/dir paths separated by spaces): ($DeleteFilesOnUpgrade): "
+	read var
+	if [ -n "$var" ] ; then
+		DeleteFilesOnUpgrade="$var"
+		CHANGED=1
+	fi
 fi
+
+# Compatibility - if RedefinedKeysScreenGestures is empty, copy keycodes from RedefinedKeysScreenKb
+KEY2=0
+if [ -z "$RedefinedKeysScreenGestures" ] ; then
+	RedefinedKeysScreenGestures="$(
+		for KEY in $RedefinedKeysScreenKb; do
+			if [ $KEY2 -ge 6 ] && [ $KEY2 -le 9 ]; then
+				echo -n $KEY ' '
+			fi
+			KEY2=$(expr $KEY2 '+' 1)
+		done
+	)"
+	RedefinedKeysScreenKb="$(
+		for KEY in $RedefinedKeysScreenKb; do
+			if [ $KEY2 -lt 6 ] || [ $KEY2 -gt 9 ]; then
+				echo -n $KEY ' '
+			fi
+			KEY2=$(expr $KEY2 '+' 1)
+		done
+	)"
 fi
 
 if [ -n "$CHANGED" ]; then
@@ -150,12 +171,22 @@ echo >> AndroidAppSettings.cfg
 echo "# Application user-visible version name (string)" >> AndroidAppSettings.cfg
 echo AppVersionName=\"$AppVersionName\" >> AndroidAppSettings.cfg
 echo >> AndroidAppSettings.cfg
-echo "# Specify path to download application data in zip archive in the form 'Description|URL|MirrorURL^Description2|URL2|MirrorURL2^...'" >> AndroidAppSettings.cfg
+echo "# Specify path to download application data in zip archive in the form \"Description|URL|MirrorURL^Description2|URL2|MirrorURL2^...\"" >> AndroidAppSettings.cfg
 echo "# If you'll start Description with '!' symbol it will be enabled by default, '!!' will also hide the entry from the menu, so it cannot be disabled" >> AndroidAppSettings.cfg
 echo "# If the URL in in the form ':dir/file.dat:http://URL/' it will be downloaded as binary BLOB to the application dir and not unzipped" >> AndroidAppSettings.cfg
 echo "# If the URL does not contain 'http://' or 'https://', it is treated as file from 'project/jni/application/src/AndroidData' dir -" >> AndroidAppSettings.cfg
 echo "# these files are put inside .apk package by the build system" >> AndroidAppSettings.cfg
-echo "# You can specify Google Play expansion files in the form 'obb:main.12345' or 'obb:patch.12345' where 12345 is the app version for obb file" >> AndroidAppSettings.cfg
+echo "# You can specify Google Play expansion files in the form 'obb:main.12345' or 'obb:patch.12345' where 12345 is the app version for the obb file" >> AndroidAppSettings.cfg
+echo "# You can mount expansion files created with jobb tool if you put 'mnt:main.12345' or 'mnt:patch.12345'" >> AndroidAppSettings.cfg
+echo "# The mount directory will be returned by calling getenv(\"ANDROID_OBB_MOUNT_DIR\")" >> AndroidAppSettings.cfg
+echo "# Android app bundles do not support .obb files, they use asset packs instead." >> AndroidAppSettings.cfg
+echo "# This app project includes one pre-configured install-time asset pack." >> AndroidAppSettings.cfg
+echo "# To put your data into asset pack, copy it to the directory AndroidData/assetpack" >> AndroidAppSettings.cfg
+echo "# and run changeAppSettings.sh. The asset pack zip archive will be returned by" >> AndroidAppSettings.cfg
+echo "# getenv(\"ANDROID_ASSET_PACK_PATH\"), this call will return NULL if the asset pack is not installed." >> AndroidAppSettings.cfg
+echo "# You can put \"assetpack\" keyword to AppDataDownloadUrl, the code will check" >> AndroidAppSettings.cfg
+echo "# if the asset pack is installed and will not download the data from other URLs." >> AndroidAppSettings.cfg
+echo "# You can extract files from the asset pack the same way you extract files from the app assets." >> AndroidAppSettings.cfg
 echo "# You can use .zip.xz archives for better compression, but you need to add 'lzma' to CompiledLibraries" >> AndroidAppSettings.cfg
 echo "# Generate .zip.xz files like this: zip -0 -r data.zip your-data/* ; xz -8 data.zip" >> AndroidAppSettings.cfg
 echo AppDataDownloadUrl=\"$AppDataDownloadUrl\" >> AndroidAppSettings.cfg
@@ -329,6 +360,9 @@ echo >> AndroidAppSettings.cfg
 echo "# Immersive mode - Android will hide on-screen Home/Back keys. Looks bad if you invoke Android keyboard. (y) / (n)" >> AndroidAppSettings.cfg
 echo ImmersiveMode=$ImmersiveMode >> AndroidAppSettings.cfg
 echo >> AndroidAppSettings.cfg
+echo "# Draw in the display cutout area. (y) / (n)" >> AndroidAppSettings.cfg
+echo DrawInDisplayCutout=$DrawInDisplayCutout >> AndroidAppSettings.cfg
+echo >> AndroidAppSettings.cfg
 echo "# Hide Android system mouse cursor image when USB mouse is attached (y) or (n) - the app must draw it's own mouse cursor" >> AndroidAppSettings.cfg
 echo HideSystemMousePointer=$HideSystemMousePointer >> AndroidAppSettings.cfg
 echo >> AndroidAppSettings.cfg
@@ -345,10 +379,13 @@ echo "# Use word NO_REMAP if you want to preserve native functionality for certa
 echo "# Keys: TOUCHSCREEN (works only when AppUsesMouse=n), DPAD_CENTER/SEARCH, VOLUMEUP, VOLUMEDOWN, MENU, BACK, CAMERA" >> AndroidAppSettings.cfg
 echo RedefinedKeys=\"$RedefinedKeys\" >> AndroidAppSettings.cfg
 echo >> AndroidAppSettings.cfg
-echo "# Number of virtual keyboard keys (currently 6 is maximum)" >> AndroidAppSettings.cfg
+echo "# Number of virtual keyboard keys - currently 12 keys is the maximum" >> AndroidAppSettings.cfg
 echo AppTouchscreenKeyboardKeysAmount=$AppTouchscreenKeyboardKeysAmount >> AndroidAppSettings.cfg
 echo >> AndroidAppSettings.cfg
-echo "# Redefine on-screen keyboard keys to SDL keysyms - 6 keyboard keys + 4 multitouch gestures (zoom in/out and rotate left/right)" >> AndroidAppSettings.cfg
+echo "# Define SDL keysyms for multitouch gestures - pinch-zoom in, pinch-zoom out, rotate left, rotate right" >> AndroidAppSettings.cfg
+echo RedefinedKeysScreenGestures=\"$RedefinedKeysScreenGestures\" >> AndroidAppSettings.cfg
+echo >> AndroidAppSettings.cfg
+echo "# Redefine on-screen keyboard keys to SDL keysyms - currently 12 keys is the maximum" >> AndroidAppSettings.cfg
 echo RedefinedKeysScreenKb=\"$RedefinedKeysScreenKb\" >> AndroidAppSettings.cfg
 echo >> AndroidAppSettings.cfg
 echo "# Names for on-screen keyboard keys, such as Fire, Jump, Run etc, separated by spaces, they are used in SDL config menu" >> AndroidAppSettings.cfg
@@ -711,6 +748,12 @@ for KEY in $RedefinedKeys; do
 done
 
 KEY2=0
+for KEY in $RedefinedKeysScreenGestures; do
+	RedefinedSDLScreenGestures="$RedefinedSDLScreenGestures -DSDL_ANDROID_SCREEN_GESTURE_KEYCODE_$KEY2=$KEY"
+	KEY2=`expr $KEY2 '+' 1`
+done
+
+KEY2=0
 for KEY in $RedefinedKeysScreenKb; do
 	RedefinedKeycodesScreenKb="$RedefinedKeycodesScreenKb -DSDL_ANDROID_SCREENKB_KEYCODE_$KEY2=$KEY"
 	KEY2=`expr $KEY2 '+' 1`
@@ -924,6 +967,12 @@ else
 	ImmersiveMode=true
 fi
 
+if [ "$DrawInDisplayCutout" = "y" ]; then
+	DrawInDisplayCutout=true
+else
+	DrawInDisplayCutout=false
+fi
+
 if [ "$HideSystemMousePointer" = "n" ]; then
 	HideSystemMousePointer=false
 else
@@ -1026,6 +1075,7 @@ $SEDI "s/public static boolean AppUsesMultitouch = .*;/public static boolean App
 $SEDI "s/public static boolean NonBlockingSwapBuffers = .*;/public static boolean NonBlockingSwapBuffers = $NonBlockingSwapBuffers;/" project/src/Globals.java
 $SEDI "s/public static boolean ResetSdlConfigForThisVersion = .*;/public static boolean ResetSdlConfigForThisVersion = $ResetSdlConfigForThisVersion;/" project/src/Globals.java
 $SEDI "s/public static boolean ImmersiveMode = .*;/public static boolean ImmersiveMode = $ImmersiveMode;/" project/src/Globals.java
+$SEDI "s/public static boolean DrawInDisplayCutout = .*;/public static boolean DrawInDisplayCutout = $DrawInDisplayCutout;/" project/src/Globals.java
 $SEDI "s/public static boolean HideSystemMousePointer = .*;/public static boolean HideSystemMousePointer = $HideSystemMousePointer;/" project/src/Globals.java
 $SEDI "s|public static String DeleteFilesOnUpgrade = .*;|public static String DeleteFilesOnUpgrade = \"$DeleteFilesOnUpgrade\";|" project/src/Globals.java
 $SEDI "s/public static int AppTouchscreenKeyboardKeysAmount = .*;/public static int AppTouchscreenKeyboardKeysAmount = $AppTouchscreenKeyboardKeysAmount;/" project/src/Globals.java
@@ -1048,16 +1098,20 @@ fi
 
 # TODO: We should not build png, jpeg if SDL2_image is used
 if [ "$LibSdlVersion" = "2.0" ]; then
-        APP_MODULES_BASE="SDL2"
+  APP_MODULES_BASE="SDL2 sdl_native_helpers $CompiledLibraries"
+	APP_MODULES_CUSTOM="application"
 else
-	APP_MODULES_BASE="sdl-$LibSdlVersion sdl_main sdl_native_helpers jpeg png ogg flac vorbis freetype"
+	#APP_MODULES_BASE="sdl-$LibSdlVersion sdl_main sdl_native_helpers jpeg png ogg flac vorbis freetype"
+	APP_MODULES_BASE="sdl-$LibSdlVersion sdl_native_helpers jpeg png ogg flac vorbis freetype $CompiledLibraries"
+	APP_MODULES_CUSTOM="application sdl_main"
 fi
 
 
 echo Patching project/jni/Settings.mk
 echo '# DO NOT EDIT THIS FILE - it is automatically generated, edit file SettingsTemplate.mk' > project/jni/Settings.mk
 cat project/jni/SettingsTemplate.mk | \
-	sed "s/APP_MODULES := .*/APP_MODULES := $APP_MODULES_BASE $CompiledLibraries application/" | \
+  sed "s/APP_MODULES := .*/APP_MODULES := $APP_MODULES_BASE/" | \
+  sed "s/APP_MODULES += .*/APP_MODULES += $APP_MODULES_CUSTOM/" | \
 	sed "s/APP_ABI := .*/APP_ABI := $MultiABI/" | \
 	sed "s/SDL_JAVA_PACKAGE_PATH := .*/SDL_JAVA_PACKAGE_PATH := $AppFullNameUnderscored/" | \
 	sed "s^SDL_CURDIR_PATH := .*^SDL_CURDIR_PATH := $DataPath^" | \
@@ -1071,6 +1125,7 @@ cat project/jni/SettingsTemplate.mk | \
 	sed "s^USE_GL4ES :=.*^USE_GL4ES := $UseGl4es^" | \
 	sed "s^SDL_ADDITIONAL_CFLAGS :=.*^SDL_ADDITIONAL_CFLAGS := \
 		$RedefinedKeycodes \
+		$RedefinedSDLScreenGestures \
 		$RedefinedKeycodesScreenKb \
 		$RedefinedKeycodesGamepad \
 		$CompatibilityHacksPreventAudioChopping \
@@ -1132,6 +1187,10 @@ else
 		echo "Unpack it, then place file proguard.jar to $PROGUARD"
 		exit 1
 	}
+fi
+
+if [ -z "`ls project/assetpack/src/main/assets/ 2>/dev/null`" ] ; then
+	$SEDI "/==ASSETPACK==/ d" project/app/build.gradle
 fi
 
 if [ -e project/jni/application/src/project.patch ]; then patch -p1 --dry-run -f -R < project/jni/application/src/project.patch > /dev/null 2>&1 || patch -p1 --no-backup-if-mismatch < project/jni/application/src/project.patch || exit 1 ; fi

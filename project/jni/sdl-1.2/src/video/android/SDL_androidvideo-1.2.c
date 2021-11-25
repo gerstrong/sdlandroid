@@ -447,7 +447,6 @@ SDL_Surface *ANDROID_SetVideoMode(_THIS, SDL_Surface *current,
 				// and expects those 256 pixels to stretch 2x height like on a TV interlaced display.
 				SDL_ANDROID_sWindowWidth = SDL_ANDROID_sWindowHeight * 4 / 3;
 
-			//SDL_ANDROID_TouchscreenCalibrationWidth = SDL_ANDROID_sWindowWidth;
 			SDL_ANDROID_ForceClearScreenRectAmount = 2;
 		}
 

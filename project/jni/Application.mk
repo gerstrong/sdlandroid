@@ -2,6 +2,8 @@ APP_PROJECT_PATH := $(call my-dir)/..
 
 include jni/Settings.mk
 
+$(info $$APP_MODULES is [${APP_MODULES}])
+
 ifneq ($(filter c++_shared, $(APP_MODULES)),)
 APP_STL := c++_shared
 else

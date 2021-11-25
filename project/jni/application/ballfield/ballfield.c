@@ -23,8 +23,6 @@
 #define fprintf(X, ...) __android_log_print(ANDROID_LOG_INFO, "Ballfield", __VA_ARGS__)
 #define printf(...) __android_log_print(ANDROID_LOG_INFO, "Ballfield", __VA_ARGS__)
 
-extern int create_server_socket(int portno);
-
 
 /*----------------------------------------------------------
 	Definitions...
@@ -716,6 +714,22 @@ int main(int argc, char* argv[])
 			if(evt.type == SDL_MOUSEBUTTONUP || evt.type == SDL_MOUSEBUTTONDOWN)
 			{
 				__android_log_print(ANDROID_LOG_INFO, "Ballfield", "SDL mouse button event: evt %s state %s button %d coords %d:%d", evt.type == SDL_MOUSEBUTTONUP ? "UP  " : "DOWN" , evt.button.state == SDL_PRESSED ? "PRESSED " : "RELEASED", (int)evt.button.button, (int)evt.button.x, (int)evt.button.y);
+				if (evt.type == SDL_MOUSEBUTTONDOWN && evt.button.button == SDL_BUTTON_WHEELDOWN)
+				{
+					y_offs += 10000;
+				}
+				if (evt.type == SDL_MOUSEBUTTONDOWN && evt.button.button == SDL_BUTTON_WHEELUP)
+				{
+					y_offs -= 10000;
+				}
+				if (evt.type == SDL_MOUSEBUTTONDOWN && evt.button.button == SDL_BUTTON_X1)
+				{
+					x_offs += 10000;
+				}
+				if (evt.type == SDL_MOUSEBUTTONDOWN && evt.button.button == SDL_BUTTON_X2)
+				{
+					x_offs -= 10000;
+				}
 			}
 			if(evt.type == SDL_VIDEORESIZE)
 				__android_log_print(ANDROID_LOG_INFO, "Ballfield", "SDL resize event: %d x %d", evt.resize.w, evt.resize.h);

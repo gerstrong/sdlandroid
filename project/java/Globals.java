@@ -91,6 +91,7 @@ class Globals
 	public static boolean HorizontalOrientation = true;
 	public static boolean AutoDetectOrientation = false;
 	public static boolean ImmersiveMode = true;
+	public static boolean DrawInDisplayCutout = false;
 	public static boolean HideSystemMousePointer = false;
 	public static boolean DownloadToSdcard = true;
 	public static boolean PhoneHasArrowKeys = false;
@@ -131,12 +132,66 @@ class Globals
 	public static boolean KeepAspectRatio = KeepAspectRatioDefaultSetting;
 	public static boolean TvBorders = true;
 	public static int RemapHwKeycode[] = new int[SDL_Keys.JAVA_KEYCODE_LAST];
-	public static int RemapScreenKbKeycode[] = new int[6];
-	public static int ScreenKbControlsLayout[][] =	AppUsesThirdJoystick ? // Values for 800x480 resolution
-													new int[][] { { 0, 303, 177, 480 }, { 0, 0, 48, 48 }, { 400, 392, 488, 480 }, { 312, 392, 400, 480 }, { 400, 304, 488, 392 }, { 312, 304, 400, 392 }, { 400, 216, 488, 304 }, { 312, 216, 400, 304 }, { 623, 303, 800, 480 }, { 623, 126, 800, 303 } } :
-													AppUsesSecondJoystick ?
-													new int[][] { { 0, 303, 177, 480 }, { 0, 0, 48, 48 }, { 400, 392, 488, 480 }, { 312, 392, 400, 480 }, { 400, 304, 488, 392 }, { 312, 304, 400, 392 }, { 400, 216, 488, 304 }, { 312, 216, 400, 304 }, { 623, 303, 800, 480 } } :
-													new int[][] { { 0, 303, 177, 480 }, { 0, 0, 48, 48 }, { 712, 392, 800, 480 }, { 624, 392, 712, 480 }, { 712, 304, 800, 392 }, { 624, 304, 712, 392 }, { 712, 216, 800, 304 }, { 624, 216, 712, 304 } };
+	public static int RemapScreenKbKeycode[] = new int[12];
+	// Values for 800x480 resolution
+	public static int ScreenKbControlsLayout[][] =
+		AppUsesThirdJoystick ? new int[][]
+		{
+			{ 0,   303, 177, 480 }, // Main joystick/DPAD
+			{ 0,   0,   48,  48  }, // Text input button
+			{ 400, 392, 488, 480 }, // Button 0
+			{ 312, 392, 400, 480 }, // Button 1
+			{ 400, 304, 488, 392 }, // Button 2
+			{ 312, 304, 400, 392 }, // Button 3
+			{ 400, 216, 488, 304 }, // Button 4
+			{ 312, 216, 400, 304 }, // Button 5
+			{ 623, 303, 800, 480 }, // Joystick 2
+			{ 623, 126, 800, 303 }, // Joystick 3
+			{ 400, 392, 488, 480 }, // Button 6 - copy of button 0, to be redefined in the code
+			{ 312, 392, 400, 480 }, // Button 7 - copy of button 1, to be redefined in the code
+			{ 400, 304, 488, 392 }, // Button 8 - copy of button 2, to be redefined in the code
+			{ 312, 304, 400, 392 }, // Button 9 - copy of button 3, to be redefined in the code
+			{ 400, 216, 488, 304 }, // Button 10 - copy of button 4, to be redefined in the code
+			{ 312, 216, 400, 304 }, // Button 11 - copy of button 5, to be redefined in the code
+		}
+		: AppUsesSecondJoystick ? new int[][]
+		{
+			{ 0,   303, 177, 480 }, // Main joystick/DPAD
+			{ 0,   0,   48,  48  }, // Text input button
+			{ 400, 392, 488, 480 }, // Button 0
+			{ 312, 392, 400, 480 }, // Button 1
+			{ 400, 304, 488, 392 }, // Button 2
+			{ 312, 304, 400, 392 }, // Button 3
+			{ 400, 216, 488, 304 }, // Button 4
+			{ 312, 216, 400, 304 }, // Button 5
+			{ 623, 303, 800, 480 }, // Joystick 2
+			{ 0,   0,   0,   0,  }, // Joystick 3
+			{ 400, 392, 488, 480 }, // Button 6 - copy of button 0, to be redefined in the code
+			{ 312, 392, 400, 480 }, // Button 7 - copy of button 1, to be redefined in the code
+			{ 400, 304, 488, 392 }, // Button 8 - copy of button 2, to be redefined in the code
+			{ 312, 304, 400, 392 }, // Button 9 - copy of button 3, to be redefined in the code
+			{ 400, 216, 488, 304 }, // Button 10 - copy of button 4, to be redefined in the code
+			{ 312, 216, 400, 304 }, // Button 11 - copy of button 5, to be redefined in the code
+		}
+		: new int[][]
+		{
+			{ 0, 303,   177, 480 }, // Main joystick/DPAD
+			{ 0,   0,   48,  48  }, // Text input button
+			{ 712, 392, 800, 480 }, // Button 0
+			{ 624, 392, 712, 480 }, // Button 1
+			{ 712, 304, 800, 392 }, // Button 2
+			{ 624, 304, 712, 392 }, // Button 3
+			{ 712, 216, 800, 304 }, // Button 4
+			{ 624, 216, 712, 304 }, // Button 5
+			{ 0,   0,   0,   0,  }, // Joystick 2
+			{ 0,   0,   0,   0,  }, // Joystick 3
+			{ 536, 392, 624, 480 }, // Button 6
+			{ 448, 392, 536, 480 }, // Button 7
+			{ 536, 304, 624, 392 }, // Button 8
+			{ 448, 304, 536, 392 }, // Button 9
+			{ 536, 216, 624, 304 }, // Button 10
+			{ 448, 216, 536, 304 }, // Button 11
+		};
 	public static boolean ScreenKbControlsShown[] = new boolean[ScreenKbControlsLayout.length]; /* Also joystick and text input button added */
 	public static int RemapMultitouchGestureKeycode[] = new int[4];
 	public static boolean MultitouchGesturesUsed[] = new boolean[4];
