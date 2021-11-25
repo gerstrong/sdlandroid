@@ -30,8 +30,6 @@ build() {
 			exit 1;;
 	esac
 
-    echo lib-${ARCH}/libcrypto.a
-
 	if [ -f "lib-${ARCH}/libcrypto.a" ]
 	then
 	   return 0;
