@@ -10,10 +10,6 @@ build() {
 	ARCH=$1
 	NO_ASM=""
 
-	if [ -d "lib-$ARCH" ]; then
-	  exit 0
-	fi
-
 	case $ARCH in
 		armeabi-v7a)
 			#NO_ASM="-DOPENSSL_NO_ASM=1" # Assembler in OpenSSL is broken when using clang
@@ -34,6 +30,14 @@ build() {
 			exit 1;;
 	esac
 
+    echo lib-${ARCH}/libcrypto.a
+
+	if [ -f "lib-${ARCH}/libcrypto.a" ]
+	then
+	   return 0;
+	fi
+
+
 	rm -rf build/$ARCH
 	mkdir -p build/$ARCH
 	cd build/$ARCH
@@ -41,22 +45,16 @@ build() {
 	tar -x -v -z -f ../../openssl-1.1.1j.tar.gz --strip=1
 	patch -p1 < ../../config.patch || exit 1
 
-	NDK=`which ndk-build`
-	NDK=`dirname $NDK`
-	NDK=`readlink -f $NDK`
-	export CROSS_SYSROOT=$NDK/sysroot/usr
-	export ANDROID_NDK_HOME=$NDK
-
-	env LDFLAGS="" \
+	env LDFLAGS=" -landroid -llog" \
 		CFLAGS="$NO_ASM" \
 		../../setCrossEnvironment-$ARCH.sh \
-#		ln -s $AR `basename -s -clang $CC`-ar
-#		export PATH=`pwd`:`dirname $CC`:$PATH
-#		export ANDROID_NDK_HOME=`dirname $CC`/..
-#		export CC=clang
-#		export AR=ar
-		sh -c 'env PATH=`dirname $CC`:$PATH \
-		./Configure no-shared --prefix=`pwd`/dist --openssldir=. $CONFIGURE_ARCH -fPIC' \
+		sh -c '
+		ln -s $AR `basename -s -clang $CC`-ar
+		export PATH=`pwd`:`dirname $CC`:$PATH
+		export ANDROID_NDK_HOME=`dirname $CC`/..
+		export CC=clang
+		export AR=ar
+		./Configure no-shared zlib --prefix=`pwd`/dist --openssldir=. $CONFIGURE_ARCH -fPIC' \
 		|| exit 1
 
 	sed -i.old 's/^CNF_CPPFLAGS=.*/CNF_CPPFLAGS=/' Makefile
@@ -70,7 +68,7 @@ build() {
 		sed -i.old 's@crypto/poly1305/poly1305-armv4.o @@' Makefile
 	fi
 
-	env LDFLAGS="" \
+	env LDFLAGS=" -landroid -llog" \
 		CFLAGS="$NO_ASM" \
 		../../setCrossEnvironment-$ARCH.sh \
 		sh -c '
@@ -105,8 +103,10 @@ else
 	done
 fi
 
+if [ -d build/arm64-v8a/include ]; then
 rm -rf include
 cp -r -L build/arm64-v8a/include ./ || exit 1
 patch -p1 < opensslconf.h.patch || exit 1
+fi
 
 rm -rf build

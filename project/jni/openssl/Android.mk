@@ -15,6 +15,7 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/include
 LOCAL_SRC_FILES := lib-$(TARGET_ARCH_ABI)/lib$(LOCAL_MODULE).a
 LOCAL_BUILT_MODULE := # This fixes a bug in NDK r10d
 
+
 # NDK is buggy meh
 #obj/local/$(TARGET_ARCH_ABI)/lib$(LOCAL_MODULE).so.sdl.1.so: $(LOCAL_PATH)/$(LOCAL_SRC_FILES)
 #	cp -f $< $@
